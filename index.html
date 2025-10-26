@@ -305,7 +305,7 @@
     <div class="container">
         <header>
             <h1>Detector Balanceado de Conteúdo Humano vs IA</h1>
-            <p>Algoritmo otimizado para reconhecer características humanas genuínas</p>
+            <p>Algoritmo otimizado para detectar ambos os tipos de conteúdo com precisão</p>
         </header>
 
         <div class="main-content">
@@ -393,41 +393,56 @@
         // Variável global para armazenar resultados atuais
         let currentAnalysisResult = null;
 
-        // PADRÕES DE IA - PESOS RADICALMENTE REDUZIDOS
+        // PADRÕES DE IA - OTIMIZADOS PARA DETECÇÃO PRECISA
         const strongAIPatterns = [
             {
-                pattern: /---+\s*\n\*\*Nota do Autor:\*\*.+?(?:ChatGPT|IA|modelo|gerado).+$/gis,
-                weight: 80, // Apenas para notas explícitas de IA
+                pattern: /---+\s*\n\*\*Nota do Autor:\*\*.+?(?:ChatGPT|IA|modelo|gerado|inteligência artificial).+$/gis,
+                weight: 95,
                 description: "NOTA EXPLÍCITA DE IA DETECTADA"
             },
             {
                 pattern: /\*\*[^*]+\*\*/g,
-                weight: 3, // Reduzido drasticamente de 25
-                description: "Uso de negrito"
+                weight: 8,
+                description: "Uso excessivo de negrito"
             },
             {
                 pattern: /^(\d+\.)+\s+\*\*.+?\*\*$/gm,
-                weight: 5, // Reduzido drasticamente
-                description: "Hierarquia com negrito"
+                weight: 12,
+                description: "Hierarquia padronizada com negrito"
             },
             {
-                pattern: /^Abstract:|^Resumo:|^Introdução$|^Conclusão$|^Referências$/gmi,
-                weight: 2, // Estrutura acadêmica normal
-                description: "Seções acadêmicas padrão"
+                pattern: /\b(?:dessa forma|nesse sentido|portanto|assim sendo)\b[^.!?]{0,30}[,;]\s+\b(?:conclui-se|infere-se|deduz-se)\b/gi,
+                weight: 25,
+                description: "Estrutura lógica excessivamente padronizada"
             },
             {
-                pattern: /\b(?:objetivo geral|objetivos específicos|metodologia|análise|discussão)\b.*?:/gi,
-                weight: 2, // Elementos normais de pesquisa
-                description: "Elementos metodológicos"
+                pattern: /\b(?:cabe destacar que|importante ressaltar que|vale mencionar que)\b[^.!?]{0,50}\./gi,
+                weight: 15,
+                description: "Expressões de ênfase padronizadas"
             },
             {
-                pattern: /\([A-Z][a-z]+,\s*\d{4}\)/g,
-                weight: 1, // Citações acadêmicas normais
-                description: "Citações acadêmicas"
+                pattern: /^>\s+.+$/gm,
+                weight: 20,
+                description: "Blocos de citação formatados"
+            },
+            {
+                pattern: /\b(?:como um modelo de IA|como uma inteligência artificial|sou um assistente AI)\b/gi,
+                weight: 90,
+                description: "Auto-identificação como IA"
+            },
+            {
+                pattern: /\b(?:pesquisa qualitativa|abordagem interpretativista|revisão bibliográfica)\b.*?\b(?:ferreiro|kishimoto|antunes)\b/gi,
+                weight: 18,
+                description: "Combinação genérica de metodologia e referências"
+            },
+            {
+                pattern: /\.\s*\n\s*\*\*[^*]+\*\*\s*\n\s*[A-Z]/g,
+                weight: 15,
+                description: "Padrão de quebra com negrito"
             }
         ];
 
-        // PADRÕES HUMANOS - PESOS AUMENTADOS SIGNIFICATIVAMENTE
+        // PADRÕES HUMANOS - MANTIDOS FORTES
         const strongHumanPatterns = [
             {
                 pattern: /\b(?:acreditamos|entendemos|percebemos|observamos|defendemos|questionamos)\b/gi,
@@ -441,7 +456,7 @@
             },
             {
                 pattern: /[^.!?]{120,}[.!?]/g,
-                weight: 20,
+                weight: 18,
                 description: "Frases longas e complexas"
             },
             {
@@ -466,7 +481,7 @@
             },
             {
                 pattern: /"[^"]{50,}"[^.!?]*\./g,
-                weight: 22,
+                weight: 20,
                 description: "Citações longas integradas naturalmente"
             },
             {
@@ -491,43 +506,17 @@
             },
             {
                 pattern: /[A-Z][a-z]+(?: [A-Z][a-z]+){2,}/g,
-                weight: 12,
-                description: "Nomes próprios compostos (referências específicas)"
+                weight: 10,
+                description: "Nomes próprios compostos"
             },
             {
                 pattern: /\b\d{4}[^-]\d{4}\b/g,
-                weight: 10,
-                description: "Referências temporais específicas"
-            },
-            // NOVOS PADRÕES HUMANOS BASEADOS NO ARTIGO FORNECIDO
-            {
-                pattern: /\b(?:desse modo|neste contexto|nesse sentido)\b[^.!?]{0,100}\b(?:entendemos|acreditamos|percebemos)\b/gi,
-                weight: 20,
-                description: "Raciocínio lógico com posicionamento pessoal"
-            },
-            {
-                pattern: /[.!?]\s*\n\s*[A-Z][^.!?]{50,}\b(?:Friedmann|Kishimoto|Vygotsky|Piaget)\b/gi,
-                weight: 15,
-                description: "Citações integradas naturalmente no texto"
-            },
-            {
-                pattern: /\b(?:importante\s+ressaltar|cabe\s+destacar|vale\s+mencionar)\b[^.!?]{0,80}[,;]\s+[^.!?]{20,}\./gi,
-                weight: 18,
-                description: "Ênfase com desenvolvimento de ideias"
-            },
-            {
-                pattern: /[^.!?]{150,}[.!?]/g,
-                weight: 22,
-                description: "Frases muito longas e complexas"
-            },
-            {
-                pattern: /\b(?:pesquisa|estudo|trabalho)\b.*?\b(?:exploratória|bibliográfica|qualitativa)\b/gi,
                 weight: 8,
-                description: "Metodologia de pesquisa específica"
+                description: "Referências temporais específicas"
             },
             {
                 pattern: /[\u00C0-\u00FF][\u00C0-\u00FF\s]{10,}[\u00C0-\u00FF]/g,
-                weight: 10,
+                weight: 8,
                 description: "Texto em português com acentuação natural"
             }
         ];
@@ -723,7 +712,7 @@
                 }
             }
 
-            // ANÁLISE BALANCEADA - FOCO EM RECONHECER CONTEÚDO HUMANO
+            // ANÁLISE BALANCEADA
             function calculateLexicalRichness(text) {
                 const words = text.toLowerCase().split(/\s+/).filter(word => word.length > 2);
                 const uniqueWords = new Set(words);
@@ -733,17 +722,14 @@
             function analyzeStructuralPatterns(text) {
                 let score = 0;
                 
-                // PENALIDADES MÍNIMAS PARA ESTRUTURA PADRONIZADA
+                // Penalidades moderadas para estrutura muito padronizada
                 const boldSections = (text.match(/\*\*.*?\*\*/g) || []).length;
-                if (boldSections > 10) score -= boldSections * 0.5; // Penalidade mínima
+                if (boldSections > 8) score -= Math.min(boldSections * 1.5, 25);
                 
                 const numberedSections = (text.match(/^(\d+\.)+/gm) || []).length;
-                if (numberedSections > 15) score -= numberedSections * 0.3; // Penalidade mínima
+                if (numberedSections > 12) score -= Math.min(numberedSections * 1, 20);
                 
-                const academicKeywords = (text.match(/\b(?:abstract|resumo|introdução|conclusão|referências)\b/gi) || []).length;
-                if (academicKeywords > 5) score -= academicKeywords * 0.5; // Penalidade mínima
-                
-                return Math.max(-20, score); // Limite máximo muito reduzido
+                return Math.max(-30, score);
             }
 
             function detectStrongAIPatterns(text) {
@@ -769,7 +755,7 @@
                 return {
                     patterns: detectedPatterns,
                     totalScore: totalScore,
-                    normalizedScore: Math.min(totalScore / 10, 50) // Divisor aumentado significativamente
+                    normalizedScore: Math.min(totalScore / 6, 80) // Divisor balanceado
                 };
             }
 
@@ -780,14 +766,14 @@
                 strongHumanPatterns.forEach(patternObj => {
                     const matches = text.match(patternObj.pattern);
                     if (matches && matches.length > 0) {
-                        const score = Math.min(matches.length * patternObj.weight, 80); // Limite aumentado
+                        const score = Math.min(matches.length * patternObj.weight, 80);
                         totalScore += score;
 
                         detectedPatterns.push({
                             pattern: patternObj.pattern.source.substring(0, 50) + '...',
                             matches: matches.length,
                             description: patternObj.description,
-                            examples: matches.slice(0, 5), // Mostrar mais exemplos
+                            examples: matches.slice(0, 4),
                             score: score
                         });
                     }
@@ -796,11 +782,11 @@
                 return {
                     patterns: detectedPatterns,
                     totalScore: totalScore,
-                    normalizedScore: Math.min(totalScore / 5, 80) // Divisor reduzido significativamente
+                    normalizedScore: Math.min(totalScore / 6, 75) // Divisor balanceado
                 };
             }
 
-            // ALGORITMO PRINCIPAL - FOCO EM RECONHECER HUMANIDADE
+            // ALGORITMO PRINCIPAL - BALANCEADO
             async function advancedAnalyzeContent(text, contentType) {
                 await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -815,52 +801,56 @@
                 const aiPatternAnalysis = detectStrongAIPatterns(text);
                 const humanPatternAnalysis = detectStrongHumanPatterns(text);
 
-                // CÁLCULO DO SCORE - PRESUNÇÃO DE HUMANIDADE
-                let humanScore = 70; // Base muito aumentada - presunção de humanidade
+                // CÁLCULO DO SCORE - BALANCEADO
+                let humanScore = 60; // Base balanceada
 
-                // PADRÕES DE IA COM PENALIDADE MÍNIMA
-                humanScore -= aiPatternAnalysis.normalizedScore * 0.5; // Multiplicador radicalmente reduzido
+                // PADRÕES DE IA COM PESO MODERADO
+                humanScore -= aiPatternAnalysis.normalizedScore * 0.8;
 
-                // PADRÕES HUMANOS COM BÔNUS SIGNIFICATIVO
-                humanScore += humanPatternAnalysis.normalizedScore * 1.2; // Multiplicador aumentado
+                // PADRÕES HUMANOS COM BÔNUS MODERADO
+                humanScore += humanPatternAnalysis.normalizedScore * 0.9;
 
-                // PENALIDADE ESTRUTURAL MÍNIMA
+                // PENALIDADE ESTRUTURAL MODERADA
                 humanScore += structuralPenalty;
 
-                // DETECÇÃO DE PADRÕES CHATGPT ESPECÍFICOS (APENAS NOTAS EXPLÍCITAS)
+                // DETECÇÃO DE PADRÕES EXPLÍCITOS DE IA
                 const hasExplicitIANote = text.includes('**Nota do Autor:**') && 
                                          (text.includes('ChatGPT') || text.includes('IA') || 
-                                          text.includes('modelo') || text.includes('gerado'));
+                                          text.includes('modelo') || text.includes('gerado') ||
+                                          text.includes('inteligência artificial'));
                 
                 if (hasExplicitIANote) {
-                    humanScore = Math.max(20, humanScore - 30); // Penalidade reduzida
+                    humanScore = Math.max(10, humanScore - 40);
                 }
 
-                // PADRÕES DE FORMATAÇÃO (PENALIDADE MÍNIMA)
+                // DETECÇÃO DE AUTO-IDENTIFICAÇÃO COMO IA
+                const hasSelfIdentification = text.match(/\b(?:como um modelo de IA|como uma inteligência artificial|sou um assistente AI)\b/gi);
+                if (hasSelfIdentification) {
+                    humanScore = Math.max(5, humanScore - 50);
+                }
+
+                // PADRÕES DE FORMATAÇÃO
                 const boldCount = (text.match(/\*\*.*?\*\*/g) || []).length;
-                if (boldCount > 15) {
-                    humanScore -= Math.min(boldCount * 0.3, 10); // Penalidade mínima
+                if (boldCount > 12) {
+                    humanScore -= Math.min(boldCount * 0.8, 20);
                 }
 
-                // ESTRUTURA ACADÊMICA (PENALIDADE MÍNIMA)
-                const academicSections = (text.match(/^(?:abstract|resumo|introdução|conclusão|referências)$/gmi) || []).length;
-                if (academicSections >= 4) {
-                    humanScore -= 5; // Penalidade mínima
-                }
-
-                // BÔNUS POR CARACTERÍSTICAS HUMANAS FORTES
-                if (humanPatternAnalysis.normalizedScore > 40) {
-                    humanScore += 15; // Bônus significativo para textos com muitas características humanas
-                }
-
-                // BÔNUS POR RIQUEZA LEXICAL
-                if (lexicalRichness > 30) {
+                // BÔNUS/PENALIDADES ADICIONAIS BASEADOS NO CONTEÚDO
+                if (humanPatternAnalysis.normalizedScore > 35) {
                     humanScore += 10;
                 }
 
+                if (aiPatternAnalysis.normalizedScore > 30) {
+                    humanScore -= 12;
+                }
+
+                if (lexicalRichness > 35) {
+                    humanScore += 8;
+                }
+
                 // APLICAR LIMITES BALANCEADOS
-                const humanProbability = Math.max(20, Math.min(95, humanScore));
-                const confidence = Math.max(60, 75 - Math.abs(60 - humanProbability));
+                const humanProbability = Math.max(5, Math.min(95, humanScore));
+                const confidence = calculateConfidence(humanProbability, aiPatternAnalysis, humanPatternAnalysis);
 
                 // Gerar destaques
                 const textHighlights = generateTextHighlights(text, aiPatternAnalysis, humanPatternAnalysis);
@@ -883,7 +873,6 @@
                         lexicalRichness: Math.round(lexicalRichness),
                         structuralPenalty: Math.round(structuralPenalty),
                         boldCount: boldCount,
-                        academicSections: academicSections,
                         strongAIPatterns: aiPatternAnalysis.patterns.length,
                         strongHumanPatterns: humanPatternAnalysis.patterns.length,
                         hasExplicitIANote: hasExplicitIANote
@@ -901,10 +890,25 @@
                         aiPatterns: aiPatternAnalysis.patterns,
                         humanPatterns: humanPatternAnalysis.patterns,
                         boldCount: boldCount,
-                        academicSections: academicSections,
                         hasExplicitIANote: hasExplicitIANote
                     })
                 };
+            }
+
+            function calculateConfidence(humanProb, aiPatternAnalysis, humanPatternAnalysis) {
+                let confidence = 70; // Base
+    
+                // Aumentar confiança baseado na força dos sinais
+                if (aiPatternAnalysis.normalizedScore > 50 || humanPatternAnalysis.normalizedScore > 50) {
+                    confidence += 15;
+                }
+    
+                // Aumentar confiança para resultados extremos
+                if (humanProb > 80 || humanProb < 20) {
+                    confidence += 10;
+                }
+    
+                return Math.min(95, confidence);
             }
 
             function generateTextHighlights(text, aiPatternAnalysis, humanPatternAnalysis) {
@@ -913,9 +917,9 @@
                     humanElements: []
                 };
 
-                // Padrões de IA (apenas os mais significativos)
+                // Padrões de IA
                 aiPatternAnalysis.patterns.forEach(pattern => {
-                    if (pattern.examples && pattern.examples.length > 0 && pattern.score > 10) {
+                    if (pattern.examples && pattern.examples.length > 0) {
                         pattern.examples.forEach(example => {
                             const start = text.toLowerCase().indexOf(example.toLowerCase());
                             if (start !== -1) {
@@ -930,7 +934,7 @@
                     }
                 });
 
-                // Padrões humanos (mais abrangentes)
+                // Padrões humanos
                 humanPatternAnalysis.patterns.forEach(pattern => {
                     if (pattern.examples && pattern.examples.length > 0) {
                         pattern.examples.forEach(example => {
@@ -952,32 +956,33 @@
 
             function generateSuggestions(humanProb, aiPatternAnalysis, humanPatternAnalysis, text) {
                 const suggestions = [];
-                const hasExplicitIANote = text.includes('**Nota do Autor:**');
+                const hasExplicitIANote = text.includes('**Nota do Autor:**') && 
+                                         (text.includes('ChatGPT') || text.includes('IA') || 
+                                          text.includes('modelo') || text.includes('gerado'));
 
                 if (hasExplicitIANote) {
-                    suggestions.push('⚠️ Nota explícita de IA detectada');
+                    suggestions.push('🚨 NOTA EXPLÍCITA DE IA DETECTADA');
                 }
 
-                // LIMIARES OTIMIZADOS PARA CONTEÚDO HUMANO
+                // LIMIARES BALANCEADOS
                 if (humanProb >= 80) {
-                    suggestions.push('✅ FORTES INDICAÇÕES DE CONTEÚDO HUMANO');
+                    suggestions.push('✅ ALTA PROBABILIDADE DE CONTEÚDO HUMANO');
                     suggestions.push('✓ Múltiplos padrões humanos identificados');
-                    suggestions.push('✓ Estrutura natural e características genuínas');
+                    suggestions.push('✓ Características de autoria genuína');
                 } else if (humanProb >= 65) {
                     suggestions.push('✅ PROVÁVEL CONTEÚDO HUMANO');
-                    suggestions.push('✓ Características humanas predominantes');
-                    suggestions.push('✓ Elementos de autoria genuína detectados');
+                    suggestions.push('✓ Elementos humanos predominantes');
                 } else if (humanProb >= 50) {
                     suggestions.push('⚖️ CARACTERÍSTICAS MISTAS');
-                    suggestions.push('• Equilíbrio entre elementos humanos e possíveis padrões de IA');
-                    suggestions.push('• Texto apresenta características naturais');
-                } else if (humanProb >= 35) {
-                    suggestions.push('🤔 POSSÍVEL CONTEÚDO DE IA');
-                    suggestions.push('• Alguns padrões de IA detectados');
-                    suggestions.push('• Recomenda-se análise complementar');
+                    suggestions.push('• Combinação de elementos humanos e de IA');
+                } else if (humanProb >= 30) {
+                    suggestions.push('🤔 PROVÁVEL CONTEÚDO DE IA');
+                    suggestions.push('• Padrões de IA detectados');
+                    suggestions.push('• Recomenda-se verificação adicional');
                 } else {
-                    suggestions.push('🚨 ALTA PROBABILIDADE DE IA');
-                    suggestions.push('• Múltiplos indicadores de IA generativa');
+                    suggestions.push('🚨 ALTA PROBABILIDADE DE IA GENERATIVA');
+                    suggestions.push('• Múltiplos indicadores de IA');
+                    suggestions.push('• Padrões característicos detectados');
                 }
 
                 if (humanPatternAnalysis.patterns.length > 0) {
@@ -985,12 +990,7 @@
                 }
 
                 if (aiPatternAnalysis.patterns.length > 0) {
-                    suggestions.push(`• ${aiPatternAnalysis.patterns.length} possíveis padrões de IA`);
-                }
-
-                const boldCount = (text.match(/\*\*.*?\*\*/g) || []).length;
-                if (boldCount > 10) {
-                    suggestions.push(`• Uso moderado de negrito (${boldCount} ocorrências)`);
+                    suggestions.push(`• ${aiPatternAnalysis.patterns.length} padrões de IA detectados`);
                 }
 
                 return suggestions;
@@ -1000,39 +1000,35 @@
                 const explanations = [];
 
                 if (metrics.hasExplicitIANote) {
-                    explanations.push('Nota explícita de IA identificada');
+                    explanations.push('NOTA EXPLÍCITA: Confirmação de conteúdo gerado por IA');
                 }
 
-                if (metrics.humanPatternScore > 30) {
-                    explanations.push('FORTES INDÍCIOS HUMANOS: Múltiplos elementos de autoria genuína');
-                } else if (metrics.humanPatternScore > 15) {
-                    explanations.push('INDÍCIOS HUMANOS: Características de escrita natural presentes');
+                if (metrics.aiPatternScore > 40) {
+                    explanations.push('FORTES INDÍCIOS DE IA: Múltiplos padrões detectados');
+                } else if (metrics.aiPatternScore > 20) {
+                    explanations.push('INDÍCIOS DE IA: Alguns padrões presentes');
                 }
 
-                if (metrics.aiPatternScore > 20) {
-                    explanations.push('Alguns possíveis padrões de IA detectados');
-                } else if (metrics.aiPatternScore > 10) {
-                    explanations.push('Poucos indícios de padrões de IA');
+                if (metrics.humanPatternScore > 35) {
+                    explanations.push('FORTES INDÍCIOS HUMANOS: Características genuínas de autoria');
+                } else if (metrics.humanPatternScore > 20) {
+                    explanations.push('INDÍCIOS HUMANOS: Elementos de escrita natural');
                 }
 
-                if (metrics.boldCount > 10) {
-                    explanations.push(`Formatação: ${metrics.boldCount} usos de negrito`);
-                }
-
-                if (metrics.lexicalRichness > 35) {
+                if (metrics.lexicalRichness > 40) {
                     explanations.push('Alta riqueza lexical - característica humana');
                 }
 
                 if (metrics.humanProbability >= 80) {
-                    explanations.push('ANÁLISE: Predominância clara de características humanas');
+                    explanations.push('ANÁLISE: Alta probabilidade de conteúdo humano');
                 } else if (metrics.humanProbability >= 65) {
-                    explanations.push('ANÁLISE: Provável conteúdo humano com características genuínas');
+                    explanations.push('ANÁLISE: Provável conteúdo humano');
                 } else if (metrics.humanProbability >= 50) {
-                    explanations.push('ANÁLISE: Características mistas com tendência humana');
-                } else if (metrics.humanProbability >= 35) {
-                    explanations.push('ANÁLISE: Possível conteúdo de IA com alguns elementos humanos');
+                    explanations.push('ANÁLISE: Características mistas');
+                } else if (metrics.humanProbability >= 30) {
+                    explanations.push('ANÁLISE: Provável conteúdo de IA');
                 } else {
-                    explanations.push('ANÁLISE: Fortes indícios de autoria por IA');
+                    explanations.push('ANÁLISE: Alta probabilidade de IA generativa');
                 }
 
                 return explanations;
@@ -1050,13 +1046,13 @@
                 let verdictColor = '';
                 let confidenceClass = '';
 
-                if (result.confidence >= 70) confidenceClass = 'high-confidence';
-                else if (result.confidence >= 60) confidenceClass = 'medium-confidence';
+                if (result.confidence >= 80) confidenceClass = 'high-confidence';
+                else if (result.confidence >= 70) confidenceClass = 'medium-confidence';
                 else confidenceClass = 'low-confidence';
 
-                // LIMIARES OTIMIZADOS PARA RECONHECER CONTEÚDO HUMANO
+                // LIMIARES BALANCEADOS
                 if (result.humanProbability >= 80) {
-                    verdictText = 'FORTES INDICAÇÕES DE CONTEÚDO HUMANO';
+                    verdictText = 'ALTA PROBABILIDADE DE CONTEÚDO HUMANO';
                     verdictColor = '#27ae60';
                 } else if (result.humanProbability >= 65) {
                     verdictText = 'PROVÁVEL CONTEÚDO HUMANO';
@@ -1064,11 +1060,11 @@
                 } else if (result.humanProbability >= 50) {
                     verdictText = 'CARACTERÍSTICAS MISTAS';
                     verdictColor = '#f39c12';
-                } else if (result.humanProbability >= 35) {
-                    verdictText = 'POSSÍVEL CONTEÚDO DE IA';
+                } else if (result.humanProbability >= 30) {
+                    verdictText = 'PROVÁVEL CONTEÚDO DE IA';
                     verdictColor = '#e74c3c';
                 } else {
-                    verdictText = 'ALTA PROBABILIDADE DE IA';
+                    verdictText = 'ALTA PROBABILIDADE DE IA GENERATIVA';
                     verdictColor = '#c0392b';
                 }
 
@@ -1094,7 +1090,7 @@
                         <strong>Elementos Humanos Detectados:</strong> ${result.humanPatternAnalysis.patterns.length} padrões
                     </div>
                     <div class="detail-item">
-                        <strong>Possíveis Padrões de IA:</strong> ${result.aiPatternAnalysis.patterns.length} padrões
+                        <strong>Padrões de IA Detectados:</strong> ${result.aiPatternAnalysis.patterns.length} padrões
                     </div>
                     <div class="detail-item">
                         <strong>Riqueza Lexical:</strong> ${result.advancedMetrics.lexicalRichness}%
@@ -1137,8 +1133,8 @@
                     </div>
                     <div class="metric-card">
                         <div>Padrões IA</div>
-                        <div class="metric-value ${getMetricClass(-metrics.aiPatternScore, -15, -25)}">${metrics.aiPatternScore}%</div>
-                        <small>${metrics.aiPatternScore >= 25 ? 'Alto' : metrics.aiPatternScore >= 15 ? 'Moderado' : 'Baixo'}</small>
+                        <div class="metric-value ${getMetricClass(-metrics.aiPatternScore, -20, -35)}">${metrics.aiPatternScore}%</div>
+                        <small>${metrics.aiPatternScore >= 35 ? 'Alto' : metrics.aiPatternScore >= 20 ? 'Moderado' : 'Baixo'}</small>
                     </div>
                     <div class="metric-card">
                         <div>Riqueza Lexical</div>
@@ -1148,12 +1144,7 @@
                     <div class="metric-card">
                         <div>Uso de Negrito</div>
                         <div class="metric-value ${getMetricClass(-metrics.boldCount, -5, -10)}">${metrics.boldCount}</div>
-                        <small>${metrics.boldCount >= 15 ? 'Alto' : metrics.boldCount >= 8 ? 'Moderado' : 'Normal'}</small>
-                    </div>
-                    <div class="metric-card">
-                        <div>Estrutura</div>
-                        <div class="metric-value ${getMetricClass(metrics.structuralPenalty, -5, -15)}">${metrics.structuralPenalty}</div>
-                        <small>${metrics.structuralPenalty <= -15 ? 'Rígida' : metrics.structuralPenalty <= -5 ? 'Moderada' : 'Natural'}</small>
+                        <small>${metrics.boldCount >= 12 ? 'Alto' : metrics.boldCount >= 8 ? 'Moderado' : 'Normal'}</small>
                     </div>
                     <div class="metric-card">
                         <div>Nota IA Explícita</div>
